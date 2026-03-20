@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora IMC · Mujer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose:    #c2607a;
+      --blush:   #e8a0b0;
+      --cream:   #fdf6f0;
+      --sand:    #f0e4d7;
+      --dark:    #2a1f26;
+      --muted:   #7a6570;
+      --white:   #ffffff;
+      --shadow:  rgba(42,31,38,.12);
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Decorative blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: .35;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 500px; height: 500px;
+      background: var(--blush);
+      top: -120px; right: -120px;
+    }
+    body::after {
+      width: 400px; height: 400px;
+      background: #ddb9c8;
+      bottom: -100px; left: -100px;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--white);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px var(--shadow);
+      width: 100%;
+      max-width: 560px;
+      overflow: hidden;
+    }
+
+    /* Header banner */
+    .header {
+      background: linear-gradient(135deg, var(--rose) 0%, #b04060 100%);
+      padding: 2.4rem 2.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::after {
+      content: '♀';
+      position: absolute;
+      right: 2rem; top: 50%;
+      transform: translateY(-50%);
+      font-size: 7rem;
+      color: rgba(255,255,255,.12);
+      line-height: 1;
+    }
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--white);
+      line-height: 1.2;
+    }
+    .header p {
+      color: rgba(255,255,255,.75);
+      font-size: .9rem;
+      margin-top: .5rem;
+      font-weight: 300;
+    }
+
+    /* Form */
+    .body { padding: 2.2rem 2.5rem; }
+
+    .field { margin-bottom: 1.4rem; }
+    label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .5rem;
+    }
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--sand);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color .2s;
+      background: var(--cream);
+    }
+    .input-wrap:focus-within { border-color: var(--rose); }
+    .input-wrap input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      padding: .85rem 1rem;
+      font-size: 1.1rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--dark);
+    }
+    .unit {
+      padding: .85rem 1rem;
+      background: var(--sand);
+      color: var(--muted);
+      font-size: .85rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    /* Button */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--rose) 0%, #b04060 100%);
+      color: var(--white);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      cursor: pointer;
+      margin-top: .5rem;
+      letter-spacing: .03em;
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+      box-shadow: 0 6px 20px rgba(194,96,122,.35);
+    }
+    .btn:hover { transform: translateY(-2px); opacity: .92; box-shadow: 0 10px 28px rgba(194,96,122,.4); }
+    .btn:active { transform: translateY(0); }
+
+    /* Result */
+    .result {
+      display: none;
+      margin-top: 2rem;
+      border-radius: 18px;
+      overflow: hidden;
+      animation: fadeUp .4s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .result-top {
+      background: var(--sand);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .imc-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--rose);
+    }
+    .imc-label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: .2rem; }
+    .grade-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--dark);
+    }
+    .grade-desc { font-size: .85rem; color: var(--muted); margin-top: .25rem; line-height: 1.4; }
+
+    /* Scale bar */
+    .scale-wrap { background: var(--white); padding: 1.2rem 2rem 1.6rem; }
+    .scale-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: .7rem; }
+    .scale-bar {
+      height: 10px;
+      border-radius: 99px;
+      background: linear-gradient(to right,
+        #64b5f6 0%,        /* Bajo peso */
+        #a5d6a7 22%,       /* Normal */
+        #fff176 55%,       /* Sobrepeso */
+        #ffb74d 72%,       /* Obesidad I */
+        #ef9a9a 88%,       /* Obesidad II */
+        #e57373 100%       /* Obesidad III */
+      );
+      position: relative;
+    }
+    .scale-needle {
+      position: absolute;
+      top: 50%; transform: translateX(-50%) translateY(-50%);
+      width: 16px; height: 16px;
+      background: var(--dark);
+      border: 2px solid var(--white);
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,.25);
+      transition: left .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: .5rem;
+      font-size: .68rem;
+      color: var(--muted);
+    }
+
+    /* Reference table */
+    .table-section { padding: 0 2.5rem 2rem; }
+    .table-title {
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .07em;
+      color: var(--muted); margin-bottom: .8rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    th {
+      text-align: left; padding: .5rem .7rem;
+      background: var(--sand); color: var(--muted);
+      font-weight: 500; font-size: .72rem; letter-spacing: .04em;
+    }
+    th:first-child { border-radius: 8px 0 0 0; }
+    th:last-child  { border-radius: 0 8px 0 0; }
+    td { padding: .55rem .7rem; border-bottom: 1px solid var(--sand); color: var(--dark); }
+    tr.active-row td { background: #fde8ed; font-weight: 500; color: var(--rose); }
+
+    .error-msg {
+      display: none;
+      color: #b04060;
+      font-size: .85rem;
+      margin-top: .6rem;
+      padding: .6rem 1rem;
+      background: #fde8ed;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 480px) {
+      .header, .body, .table-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .result-top { gap: 1rem; }
+      .imc-number { font-size: 2.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h1>Calculadora<br/>de IMC</h1>
+    <p>Índice de Masa Corporal · Mujer adulta</p>
+  </div>
+
+  <div class="body">
+    <div class="field">
+      <label>Peso</label>
+      <div class="input-wrap">
+        <input type="number" id="peso" placeholder="Ej: 65" min="20" max="300" step="0.1"/>
+        <span class="unit">kg</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Talla / Estatura</label>
+      <div class="input-wrap">
+        <input type="number" id="talla" placeholder="Ej: 1.65" min="1" max="2.5" step="0.01"/>
+        <span class="unit">m</span>
+      </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg">⚠ Por favor ingresa valores válidos de peso y talla.</div>
+
+    <button class="btn" onclick="calcular()">Calcular mi IMC</button>
+
+    <!-- Result -->
+    <div class="result" id="result">
+      <div class="result-top">
+        <div>
+          <div class="imc-number" id="imcVal">—</div>
+          <div class="imc-label">IMC (kg/m²)</div>
+        </div>
+        <div>
+          <div class="grade-name" id="gradeName">—</div>
+          <div class="grade-desc" id="gradeDesc">—</div>
+        </div>
+      </div>
+      <div class="scale-wrap">
+        <div class="scale-title">Escala de referencia</div>
+        <div class="scale-bar">
+          <div class="scale-needle" id="needle"></div>
+        </div>
+        <div class="scale-labels">
+          <span>16</span><span>18.5</span><span>25</span><span>30</span><span>35</span><span>40+</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /body -->
+
+  <!-- Reference table -->
+  <div class="table-section">
+    <div class="table-title">Clasificación IMC — OMS (Mujer adulta)</div>
+    <table id="imcTable">
+      <thead>
+        <tr><th>IMC (kg/m²)</th><th>Clasificación</th><th>Grado</th></tr>
+      </thead>
+      <tbody>
+        <tr data-min="0"    data-max="16">   <td>&lt; 16.0</td>       <td>Delgadez severa</td>        <td>Grado III</td></tr>
+        <tr data-min="16"   data-max="16.99"><td>16.0 – 16.99</td>    <td>Delgadez moderada</td>      <td>Grado II</td></tr>
+        <tr data-min="17"   data-max="18.49"><td>17.0 – 18.49</td>    <td>Delgadez leve</td>          <td>Grado I</td></tr>
+        <tr data-min="18.5" data-max="24.99"><td>18.5 – 24.99</td>    <td>Peso normal</td>            <td>—</td></tr>
+        <tr data-min="25"   data-max="29.99"><td>25.0 – 29.99</td>    <td>Sobrepeso</td>              <td>Pre-obesidad</td></tr>
+        <tr data-min="30"   data-max="34.99"><td>30.0 – 34.99</td>    <td>Obesidad</td>               <td>Grado I</td></tr>
+        <tr data-min="35"   data-max="39.99"><td>35.0 – 39.99</td>    <td>Obesidad severa</td>        <td>Grado II</td></tr>
+        <tr data-min="40"   data-max="999">  <td>≥ 40.0</td>          <td>Obesidad mórbida</td>       <td>Grado III</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const grades = [
+    { min: 0,    max: 16,    name: 'Delgadez severa',   desc: 'IMC muy por debajo del rango saludable. Se recomienda atención médica urgente.' },
+    { min: 16,   max: 16.99, name: 'Delgadez moderada', desc: 'Peso inferior al saludable. Consulta con un profesional de salud.' },
+    { min: 17,   max: 18.49, name: 'Delgadez leve',     desc: 'Ligeramente por debajo del peso ideal. Revisa tus hábitos nutricionales.' },
+    { min: 18.5, max: 24.99, name: '✓ Peso normal',     desc: '¡Felicitaciones! Tu IMC se encuentra dentro del rango saludable para una mujer adulta.' },
+    { min: 25,   max: 29.99, name: 'Sobrepeso',         desc: 'Tu peso supera levemente el rango saludable. Considera ajustar dieta y actividad física.' },
+    { min: 30,   max: 34.99, name: 'Obesidad Grado I',  desc: 'Obesidad moderada. Se recomienda orientación médica y cambios en el estilo de vida.' },
+    { min: 35,   max: 39.99, name: 'Obesidad Grado II', desc: 'Obesidad severa. Es importante consultar con un especialista de manera prioritaria.' },
+    { min: 40,   max: 9999,  name: 'Obesidad Grado III',desc: 'Obesidad mórbida. Requiere atención médica especializada de forma inmediata.' },
+  ];
+
+  // Map IMC value to percentage position on the bar (16 → 0%, 40+ → 100%)
+  function imcToPercent(imc) {
+    const MIN = 16, MAX = 40;
+    const pct = ((imc - MIN) / (MAX - MIN)) * 100;
+    return Math.min(Math.max(pct, 2), 98);
+  }
+
+  function calcular() {
+    const peso  = parseFloat(document.getElementById('peso').value);
+    const talla = parseFloat(document.getElementById('talla').value);
+    const err   = document.getElementById('errorMsg');
+    const res   = document.getElementById('result');
+
+    if (!peso || !talla || peso <= 0 || talla <= 0 || talla > 2.5) {
+      err.style.display = 'block';
+      res.style.display = 'none';
+      return;
+    }
+    err.style.display = 'none';
+
+    const imc = peso / (talla * talla);
+    const grade = grades.find(g => imc >= g.min && imc <= g.max) || grades[grades.length - 1];
+
+    document.getElementById('imcVal').textContent  = imc.toFixed(2);
+    document.getElementById('gradeName').textContent = grade.name;
+    document.getElementById('gradeDesc').textContent = grade.desc;
+
+    // Needle position
+    const pct = imcToPercent(imc);
+    document.getElementById('needle').style.left = pct + '%';
+
+    // Highlight table row
+    document.querySelectorAll('#imcTable tbody tr').forEach(row => {
+      const min = parseFloat(row.dataset.min);
+      const max = parseFloat(row.dataset.max);
+      row.classList.toggle('active-row', imc >= min && imc <= max);
+    });
+
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Allow Enter key to trigger calculation
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') calcular(); });
+</script>
+</body>
+</html>
